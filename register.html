@@ -1,0 +1,78 @@
+<html>
+    <body>
+        <table>
+            <form>
+               <tr>
+                 <td>Email</td>
+                 <td><input type="email" id="uemail"></td>
+              </tr>
+               <tr>
+                <td>Username</td>
+                <td><input type="text" id="uname"></td>
+              </tr>
+               <tr>
+                <td>Password</td>
+                <td><input type="password" id="upassword"></td>
+              </tr>
+               <tr>
+                <td>Re-enter Password</td>
+                <td><input type="password" id="urpassword"></td>
+              </tr>
+              <input type="button" value="sign In" onclick="getValidation()">            
+            </form>
+            
+        </table>
+    </body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script>
+         var socket = io.connect('http://127.0.0.1:4002');
+         function getValidation()
+         {
+            var email=document.getElementById("uemail").value;
+            var username=document.getElementById("uname").value;
+            var password=document.getElementById("upassword").value;
+            var rpassword=document.getElementById("urpassword").value;
+
+            if(email== "" ) {
+            alert( "Please provide your email!" );
+            email.focus();
+            return false;
+            }
+            if(username== "" ) {
+            alert( "Please provide your username!" );
+            email.focus();
+            return false;
+            }
+            if(password== "" ) {
+            alert( "Please provide your password!" );
+            email.focus();
+            return false;
+            }
+            if(rpassword== "" ) {
+            alert( "Please provide confirmed email!" );
+            email.focus();
+            return false;
+            }
+            if(password!=rpassword){
+            alert("Password doesn't match");
+            password.value="";
+            rpassword.value="";
+            return false;
+            }
+            if(socket !== undefined){
+            socket.emit('register', {
+                            email:email,
+                            username:username,
+                            password:password
+                        });
+            socket.on('registration status',function(data){
+                if(data==1)
+                  window.location.href= "login.html";
+                else if(data==-1)
+                  alert("username already exists");
+            });
+            
+            }
+         }
+    </script>
+</html>

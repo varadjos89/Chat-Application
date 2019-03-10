@@ -1,0 +1,41 @@
+<html>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <body>
+        <input type="email" id="user">
+        <input type="button" value="add" onclick="addRequest()">
+    </body>
+    <script>
+         var socket = io.connect('http://127.0.0.1:4002');
+                        // Check for connection
+            
+                function addRequest()
+                {
+                    var email=document.getElementById('user').value;
+                    if(email==sessionStorage.getItem("email"))
+                        alert("Can't add yourself");
+                    else{
+                        socket.emit('adduserrequest', email);
+                             socket.on('user status', function(data){
+                                 if(data==0)
+                                    alert("Conection error");
+                                 else if(data==-1)
+                                    alert("User doesn't exists");
+                                 else{
+                                     alert(data);
+                                     socket.emit('adduser',{
+                                        email1:email,
+                                        email2:sessionStorage.getItem("email"),
+                                        username:sessionStorage.getItem("username")
+                                    });
+                                    socket.on('adduser status', function(data){
+                                        alert(data);
+                                 });
+                                }
+                             });
+                    }
+                    
+                }
+
+    
+    </script>
+</html>

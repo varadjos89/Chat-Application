@@ -1,0 +1,55 @@
+<html>
+    <body>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+        Enter group name:
+        <input type="text" id="groupname">
+        <input type="button" value ="Add Members"onclick="addmembers()">
+        <br>
+        Enter Group members email Id:
+        <div id='add' class="card">
+        
+        </div>
+        <input type="button" value="submit" onclick="onSubmit()">
+        <script>
+            var x=0;
+            var socket = io.connect('http://127.0.0.1:4002');
+            function addmembers()
+            {
+                x=x+1;
+                var container= document.getElementById('add');
+                var input = document.createElement("input");
+                input.type = "text";
+                input.id = x;
+                container.appendChild(input);
+                // Append a line break 
+                container.appendChild(document.createElement("br"));
+                container.appendChild(document.createElement("br"));
+            }
+
+            function onSubmit()
+            {
+                var name=document.getElementById('groupname').value;
+                var email1=document.getElementById('1').value;
+                var email2=document.getElementById('2').value;
+                var email3=document.getElementById('3').value;
+                socket.emit("create group",{
+                    name:name,
+                    email1:email1,
+                    email2:email2,
+                    email3:email3
+                });
+                socket.on("create status",function(data){
+                    var result=data;
+                    if(data==1)
+                     alert("added successfully");
+                    else if(data==-1)
+                     alert("present");
+                     else
+                     alert("error");
+
+                });
+
+            }
+        </script>
+    </body>
+</html>

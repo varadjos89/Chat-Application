@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <title>MongoChat</title>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="lib/css/emoji.css" rel="stylesheet">
+    <style>
+        #messages{height:300px;}
+        .chatmessage{
+            color: red;
+            background: lightgrey;
+            border-top-left-radius: 25px;
+            border-top-right-radius: 25px;
+            border-bottom-left-radius:25px;
+            border-bottom-right-radius:25px;
+            margin-bottom: 10px;
+            padding-left: 25px;
+            margin-right:360px;
+            height: auto; 
+        }
+        .mychatmessage{
+            color: blue;
+            text-align: right;
+            background: lightgrey;
+            border-top-left-radius: 25px;
+            border-top-right-radius: 25px;
+            border-bottom-left-radius:25px;
+            border-bottom-right-radius:25px;
+            margin-bottom: 10px;
+            padding-right: 25px;
+            margin-left:360px;
+        }
+    </style>
+</head>
+<body>
+    <script>
+                var u=sessionStorage.getItem("username");
+                if(u==null)
+                     window.location.href = "login.html";
+    </script>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 offset-md-3 col-sm-12">
+                <h1 class="text-center">
+                    MongoChat 
+                    <button id="clear" class="btn btn-danger">Clear</button>
+                    <button id="logout" class="btn btn-danger" onclick="onLogout()">logout</button>
+                    <button id="adduser" class="btn btn-danger" onclick="location.href = 'adduser.html';">adduser</button>
+                    <button id="adduser" class="btn btn-danger" onclick="location.href = 'creategroup.html';">adduser</button>
+                </h1>
+                <div id="status"></div>
+                <div id="chat">
+                    <input type="text" id="receiver">
+                    <input type="hidden" id="username" class="form-control" placeholder="Enter name...">
+                    <br>
+                    <div class="card">
+                        <div id="messages" class="card-block" style="overflow-y:scroll">
+
+                        </div>
+                    </div>
+                    <div class="card2">
+                        <div id="users" class="card-block" style="overflow-y:scroll">
+                        <select id="list" onchange="showChats()"></select>
+
+                        </div>
+                    </div>
+                    <br>
+                    <textarea id="textarea" class="form-control" placeholder="Enter message..."></textarea>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <script>
+    var u=sessionStorage.getItem("username");
+    document.getElementById('username').value = u;
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script>
+        let socket = io.connect('http://127.0.0.1:4002');
+        function onLogout(){
+            sessionStorage.setItem("username", '');
+            window.location.href = "login.html";
+        }
+        function showChats(){
+            var users = document.getElementById('list');
+            var receiverId= users.options[users.selectedIndex].id;
+            var receiverUser= users.options[users.selectedIndex].value;
+            var senderId=sessionStorage.getItem("email");
+            var senderUser=sessionStorage.getItem("username");
+            document.getElementById('messages').textContent = '';
+            document.getElementById('receiver').value=receiverId;
+
+            sessionStorage.setItem("r_email",receiverId);
+            sessionStorage.setItem("r_username",receiverUser);
+            console.log(senderId+"  "+receiverId);
+
+            if(receiverId>senderId){
+                socket.emit('show chats',{
+                        email1:senderId,
+                        email2:receiverId,
+                        sender:senderUser,
+                        });
+            }
+            else if(senderId>receiverId){
+                socket.emit('show chats',{
+                        email1:receiverId,
+                        email2:senderId,
+                        sender:senderUser,
+                        });
+            }
+            else{
+                socket.emit('show chats',{
+                        email1:senderId,
+                        email2:receiverId,
+                        sender:senderUser,
+                        });
+            }
+                    
+            /*socket.emit('request chats',{
+                                    sender:sessionStorage.getItem("email"),
+                                    receiver:users.options[users.selectedIndex].id
+                                });*/
+            
+        }
+
+        
+    </script>
+
+    <script>
+        (function(){
+            var element = function(id){
+                return document.getElementById(id);
+            }
+            // Get Elements
+            var status = element('status');
+            var messages = element('messages');
+            var users = element('list');
+            var textarea = element('textarea');
+            var username = element('username');
+            var clearBtn = element('clear');
+            // Set default status
+            var statusDefault = status.textContent;
+            var setStatus = function(s){
+                // Set status
+                status.textContent = s;
+                if(s !== statusDefault){
+                    var delay = setTimeout(function(){
+                        setStatus(statusDefault);
+                    }, 4000);
+                }
+            }
+            // Connect to socket.io
+            var socket = io.connect('http://127.0.0.1:4002');
+            // Check for connection
+            
+            if(socket !== undefined){
+                console.log('Connected to sockett...');
+                // Handle Output
+                socket.on('output chats', function(data){
+                    //console.log(data);
+                    if(data.length){
+                        for(var x = 0;x < data.length;x++){
+                            // Build out message div
+                            var message = document.createElement('div');
+                            
+                            if(sessionStorage.getItem("username")==data[x].sender)
+                            {
+                                message.setAttribute(   'class', 'mychatmessage');
+                            }
+                            else
+                            {
+                                message.setAttribute(   'class', 'chatmessage');
+                            }
+                            message.textContent = data[x].sender+": "+data[x].message;
+                            messages.appendChild(message);
+                            //messages.insertBefore(message, messages.firstChild);
+                            
+                        }
+                        textarea.value='';
+                        messages.scrollTop = messages.scrollHeight;
+                    }
+                });
+
+                socket.on('output con', function(data){
+                    if(data.length){
+                        var con1 = document.createElement('option');
+                        users.appendChild(con1);
+                        for(var x = 0;x < data.length;x++){
+                            // Build out message div
+                            var con = document.createElement('option');
+                            con.setAttribute(   'class', 'connections');
+                            if(sessionStorage.getItem("email")==data[x].email1)
+                            {
+                                con.setAttribute('id', data[x].email2)
+                                con.textContent = data[x].username2;
+                            }
+                            else{
+                                con.setAttribute('id', data[x].email1)
+                                con.textContent = data[x].username1;
+                            }
+                            
+                            users.appendChild(con);
+                            //messages.insertBefore(message, messages.firstChild);
+                        }
+                        users.size=data.length;
+                        textarea.value='';
+                        messages.scrollTop = messages.scrollHeight;
+                    }
+                });
+
+                socket.on('output grp_con', function(data){
+                    if(data.length){
+                        for(var x = 0;x < data.length;x++){
+                            // Build out message div
+                            var con = document.createElement('option');
+                            con.setAttribute(   'class', 'connections');
+                            con.setAttribute('name', data[x].name)
+                            con.textContent = data[x].name;
+                            users.appendChild(con);
+                            //messages.insertBefore(message, messages.firstChild);
+                        }
+                        users.size=data.length;
+                        textarea.value='';
+                        messages.scrollTop = messages.scrollHeight;
+                    }
+                });
+
+
+                // Get Status From Server
+                socket.on('status', function(data){
+                    // get message status
+                    setStatus((typeof data === 'object')? data.message : data);
+                    // If status is clear, clear text
+                    if(data.clear){
+                        textarea.value = '';
+                    }
+                });
+                // Handle Input
+                textarea.addEventListener('keydown', function(event){
+                    var users = document.getElementById('list');
+                    if(users.options[users.selectedIndex].id=='')
+                    {
+                        alert("Please select a user for sending message");
+                    }
+                    else{
+                        if(event.which === 13 && event.shiftKey == false){
+                        // Emit to server input
+                        if(users.options[users.selectedIndex].id=='')
+                        {
+
+                        }
+                        else
+                        {
+                        var receiverId=sessionStorage.getItem("r_email");
+                        var senderId=sessionStorage.getItem("email");
+                        var senderUser=sessionStorage.getItem("username");
+                        var message=textarea.value;
+
+                        if(receiverId>senderId){
+                        socket.emit('input',{
+                                   email1:senderId,
+                                   email2:receiverId,
+                                   sender:senderUser,
+                                   message:message
+                                   });
+                                }
+                        else if(senderId>receiverId){
+                        socket.emit('input',{
+                                   email1:receiverId,
+                                   email2:senderId,
+                                   sender:senderUser,
+                                   message:message
+                                   });
+                                }
+                        else{
+                        socket.emit('input',{
+                                  email1:senderId,
+                                  email2:receiverId,
+                                  sender:senderUser,
+                                  message:message
+                                  });
+                                }
+                        
+                        event.preventDefault();
+                        }
+                    }
+
+                    }
+                    
+                  });
+                // Handle Chat Clear
+                clearBtn.addEventListener('click', function(){
+                    socket.emit('clear');
+                });
+                // Clear Message
+                socket.on('cleared', function(){
+                    messages.textContent = '';
+                });
+
+                
+            }
+        })();
+    </script>
+</body>
+</html>

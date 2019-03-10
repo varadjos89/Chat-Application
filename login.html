@@ -1,0 +1,48 @@
+<html>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+        <table>
+            <form action="/logging" method="POST">
+                <tr>
+                    <td>Email:</td>
+                    <td><input type="email" id="uname"></td>
+                </tr>
+                <tr>
+                    <td>Password:</td>
+                    <td><input type="password" id="upassword"></td>
+                </tr>
+                
+                </table>
+                <input type="button" value="Login" name="ulogin" onclick="getLogin()">
+                <input type="button" value="Sign In" name="uregister" onclick="getRegister()">
+            </form>   
+            <script>
+                    var socket = io.connect('http://127.0.0.1:4002');
+                        // Check for connection
+            
+                        function getLogin()
+                        {
+                            var email=document.getElementById('uname').value;
+                            var pass=document.getElementById('upassword').value;
+                            socket.emit('login',{
+                                        email:email,
+                                        password:pass
+                                    });
+                             socket.on('login status', function(data){
+                                 if(data==0)
+                                    alert("Conection error");
+                                 else if(data==-1)
+                                    alert("User doesn't exists");
+                                 else{
+                                    sessionStorage.setItem("email",email); 
+                                    sessionStorage.setItem("username", data);
+                                    window.location.href = "index.html";
+                                 }
+                             });      
+                        }
+                        function getRegister()
+                        {
+                            window.location.href= "register.html";
+                        }
+                        
+                </script>
+</html>
